@@ -36,11 +36,11 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
             Side effect function to return payloads based on URL
             """
             if url == "https://api.github.com/orgs/google":
-                return cls.org_payload
+                return Mock(json=lambda: cls.org_payload)
             if url == "https://api.github.com/orgs/google/repos":
-                return cls.repos_payload
+                return Mock(json=lambda: cls.repos_payload)
 
-        cls.mock_get.side_effect = lambda url: Mock(json=get_side_effect(url))
+        cls.mock_get.side_effect = get_side_effect
 
     @classmethod
     def tearDownClass(cls):
@@ -55,6 +55,16 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         """
         client = GithubOrgClient('google')
         self.assertEqual(client.public_repos(), self.expected_repos)
+
+    def test_public_repos_with_license(self):
+        """
+        Test that public_repos returns repos with the specified license
+        """
+        client = GithubOrgClient('google')
+        self.assertEqual(
+            client.public_repos(license="apache-2.0"),
+            self.apache2_repos
+        )
 
 
 if __name__ == '__main__':
